@@ -45,6 +45,17 @@ Escribe entre las comillas la dirección de tu proyecto, sin «/» al final. Eje
 Luego vuelve a publicar el sitio. (Si prefieres, envíame la dirección y te devuelvo el sitio ya conectado.)
 Mientras config.js esté vacío, o si el panel no responde, el sitio sigue funcionando: todos los botones van a la línea oficial.
 
+LO QUE SE VE EN EL PANEL (se actualiza solo cada 10 segundos)
+-------------------------------------------------------------
+- «Recibe la próxima consulta»: el asesor al que irá el siguiente clic de WhatsApp del sitio.
+- «Última consulta asignada»: a quién se envió la última y hace cuánto.
+- Contadores: consultas de hoy (hora de Colombia), consultas en total, asesores disponibles, ocupados, inactivos y consultas que fueron a la línea oficial hoy.
+- «Orden de la rotación»: la fila de asesores con su estado (siguiente, último, ocupado, inactivo) y la flecha que vuelve al primero.
+- «Últimas consultas»: las 15 más recientes con hora, asesor y desde qué botón del sitio llegaron (portada, flotante, quiz, ficha de raza, etc.).
+- En cada asesor: consultas de hoy, total y hace cuánto recibió la última.
+- «Reiniciar contadores e historial» deja todo en cero.
+Nota: el panel cuenta las consultas que el sitio entregó a cada asesor. Lo que pasa después dentro de WhatsApp (si respondió, si quedó pendiente) no pasa por aquí.
+
 USO DIARIO DEL PANEL (para el cliente)
 --------------------------------------
 - Ocupado ahora: interruptor naranja. Se aplica al instante; el asesor queda fuera de la rotación hasta que lo apagues.

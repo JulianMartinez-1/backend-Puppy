@@ -61,6 +61,40 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
 .cnt{font-variant-numeric:tabular-nums}
 .empty{text-align:center;padding:26px;border:1.5px dashed var(--line);border-radius:var(--r)}
 @media (max-width:640px){.fields,.fb .fields{grid-template-columns:1fr}.tools{margin-left:0}.foot{border-radius:var(--r)}}
+.sum{margin-bottom:16px;display:grid;gap:14px}
+.sum-h{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.live{display:inline-flex;gap:7px;align-items:center;font-size:.8rem;color:var(--mute);font-weight:600}
+.live::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent);animation:pl 2s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.live::before{animation:none}}
+.now{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.now>div{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px}
+.now .k{font-size:.74rem;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.now .v{font-size:1.25rem;font-weight:800;letter-spacing:-.01em;overflow-wrap:anywhere}
+.now .s{font-size:.84rem;color:var(--mute)}
+.now .hi{border-color:var(--mint-d);background:color-mix(in srgb,var(--mint) 28%,transparent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.tile{border:1.5px solid var(--line);border-radius:14px;padding:10px 14px}
+.tile b{display:block;font-size:1.6rem;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile span{font-size:.8rem;color:var(--mute);font-weight:600}
+.tile.ok b{color:var(--ok)}.tile.busy b{color:var(--warn)}
+.strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.strip .st{display:inline-flex;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px 6px 6px;font-weight:700;font-size:.9rem}
+.strip .st i{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-style:normal;font-size:.8rem}
+.strip .st.next{background:var(--mint);color:#0d0f10;border-color:var(--mint-d)}
+.strip .st.busy{border-color:var(--warn);color:var(--warn)}
+.strip .st.busy i{background:var(--warn);color:#fff}
+.strip .st.off{opacity:.55;text-decoration:line-through}
+.strip .st small{font-weight:600;font-size:.72rem;opacity:.85}
+.strip .arrow{color:var(--mute);font-weight:800}
+.hist{display:grid;gap:0;font-size:.9rem;max-height:320px;overflow:auto;border:1.5px solid var(--line);border-radius:14px}
+.hist .row{display:grid;grid-template-columns:78px 1fr 1.1fr;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:center}
+.hist .row:last-child{border-bottom:0}
+.hist .t{color:var(--mute);font-variant-numeric:tabular-nums;font-size:.84rem}
+.hist .fb{color:var(--warn);font-weight:700}
+.adv-s{display:flex;gap:14px;flex-wrap:wrap;font-size:.86rem;color:var(--mute)}
+.adv-s b{color:var(--ink);font-variant-numeric:tabular-nums}
+@media (max-width:640px){.now{grid-template-columns:1fr}.hist .row{grid-template-columns:64px 1fr}.hist .row .pl{grid-column:2}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -82,10 +116,16 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
   </div>
   <div id="msg" class="msg" hidden role="status"></div>
 
-  <div class="card how">
-    <h2>Cómo funciona</h2>
-    <p class="mute small">Cada vez que alguien toca un botón de WhatsApp del sitio, la consulta va al <b>siguiente asesor de la lista</b>. Si un asesor está <b>ocupado</b> o <b>inactivo</b>, se salta y pasa al siguiente. Al llegar al último, vuelve al primero.</p>
-    <p class="small" id="nextLine"></p>
+  <div class="card sum" id="sum">
+    <div class="sum-h"><h2 style="margin:0">Rotación en vivo</h2><span class="live" id="liveTxt">Actualizando…</span></div>
+    <div class="now">
+      <div class="hi"><span class="k">Recibe la próxima consulta</span><span class="v" id="nowNext">—</span><span class="s" id="nowNextS"></span></div>
+      <div><span class="k">Última consulta asignada</span><span class="v" id="nowLast">—</span><span class="s" id="nowLastS"></span></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div><p class="mute small" style="margin-bottom:8px">Orden de la rotación (al llegar al último vuelve al primero)</p><div class="strip" id="strip"></div></div>
+    <div><p class="mute small" style="margin-bottom:8px">Últimas consultas</p><div class="hist" id="hist"></div></div>
+    <p class="mute small">Cada botón de WhatsApp del sitio envía la consulta al <b>siguiente asesor disponible</b>. Los <b>ocupados</b> o <b>inactivos</b> se saltan. Si todos están ocupados, va a la línea oficial. Las cifras cuentan las consultas que el sitio entregó a cada asesor; las respuestas en WhatsApp no pasan por este panel.</p>
   </div>
 
   <div id="list" class="list"></div>
@@ -93,7 +133,7 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
     <button class="btn mint" id="add" type="button">+ Agregar asesor</button>
-    <button class="btn alt" id="resetCnt" type="button">Reiniciar contadores</button>
+    <button class="btn alt" id="resetCnt" type="button">Reiniciar contadores e historial</button>
   </div>
 
   <div class="card fb">
@@ -115,7 +155,10 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
   var $ = function (s) { return document.querySelector(s); };
   var API = location.origin;
   var token = ''; try { token = sessionStorage.getItem('pw_tok') || ''; } catch (e) { /* sin almacenamiento */ }
-  var S = null, dirty = false, noteTimer = 0;
+  var S = null, dirty = false, noteTimer = 0, poll = 0;
+  var PL = { 'portada': 'Portada', 'flotante': 'Botón flotante', 'barra-movil': 'Barra móvil', 'menu-movil': 'Menú del celular', 'catalogo': 'Catálogo', 'faq': 'Preguntas frecuentes', 'familias': 'Familias', 'comparativa': 'Comparativa', 'contacto': 'Contacto', 'encabezado': 'Encabezado', 'servicio-envio': 'Envíos', 'servicio-monta': 'Monta', 'pie-redes': 'Pie de página', 'barra-ficha': 'Ficha · barra', 'ficha-final': 'Ficha · final', 'ficha-foto': 'Ficha · foto', 'ficha-fotos': 'Ficha · fotos', 'ficha-principal': 'Ficha · botón principal', 'quiz-resultado': 'Quiz · resultado', 'razas-tarjeta': 'Tarjeta de raza' };
+  function ago(ms) { var s = Math.max(0, Math.round((Date.now() - ms) / 1000)); if (s < 45) return 'hace unos segundos'; var m = Math.round(s / 60); if (m < 60) return 'hace ' + m + ' min'; var h = Math.floor(m / 60); if (h < 24) return 'hace ' + h + ' h ' + (m % 60) + ' min'; return 'hace ' + Math.floor(h / 24) + ' d'; }
+  function clock(ms) { var d = new Date(ms); return d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }); }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function note(t, kind) { var m = $('#msg'); m.textContent = t; m.className = 'msg ' + (kind || 'ok'); m.hidden = !t; clearTimeout(noteTimer); if (t && kind !== 'err') noteTimer = setTimeout(function () { m.hidden = true; }, 4500); }
@@ -135,13 +178,12 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
 
   function draw() {
     var L = S.advisors, box = $('#list'); $('#empty').hidden = L.length > 0;
-    var nx = L.filter(function (a) { return a.id === S.next; })[0];
-    $('#nextLine').innerHTML = nx ? 'Siguiente consulta: <span class="next">' + esc(nx.name) + '</span>' : (L.length ? '<b>Nadie disponible ahora:</b> las consultas van a la línea oficial.' : '');
     box.innerHTML = L.map(function (a, i) {
-      var c = (S.counts && S.counts[a.id]) || 0, isN = a.id === S.next;
+      var c = (S.counts && S.counts[a.id]) || 0, td = (S.today && S.today[a.id]) || 0, la = S.lastAt && S.lastAt[a.id], isN = a.id === S.next;
       return '<article class="adv' + (isN ? ' is-next' : '') + (a.active ? '' : ' off') + '" data-i="' + i + '">' +
         '<div class="adv-h"><div style="display:flex;gap:10px;align-items:center"><span class="pos" aria-label="Turno ' + (i + 1) + '">' + (i + 1) + '</span><b>' + esc(a.name || 'Nuevo asesor') + '</b></div>' +
-        '<div class="badges">' + (isN ? '<span class="bdg next">Siguiente</span>' : '') + (!a.active ? '<span class="bdg">Inactivo</span>' : a.busy ? '<span class="bdg busy">Ocupado</span>' : '<span class="bdg ok">Disponible</span>') + '<span class="bdg cnt" title="Consultas asignadas">' + c + ' consultas</span></div></div>' +
+        '<div class="badges">' + (isN ? '<span class="bdg next">Siguiente</span>' : '') + (!a.active ? '<span class="bdg">Inactivo</span>' : a.busy ? '<span class="bdg busy">Ocupado</span>' : '<span class="bdg ok">Disponible</span>') + (a.id === S.lastId ? '<span class="bdg">Último en recibir</span>' : '') + '</div></div>' +
+        '<div class="adv-s"><span>Hoy: <b>' + td + '</b></span><span>Total: <b>' + c + '</b></span><span>Última consulta: <b>' + (la ? ago(+la) : 'ninguna aún') + '</b></span></div>' +
         '<div class="fields"><label class="f">Nombre<input type="text" data-k="name" maxlength="60" value="' + esc(a.name) + '"></label>' +
         '<label class="f">Cargo<input type="text" data-k="role" maxlength="60" value="' + esc(a.role) + '" placeholder="Asesor comercial"></label>' +
         '<label class="f">WhatsApp<input type="tel" inputmode="tel" data-k="number" value="' + esc(fmt(a.number)) + '" placeholder="350 205 3919"></label></div>' +
@@ -151,7 +193,35 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
     }).join('');
     $('#fbName').value = S.fallback.name || ''; $('#fbNum').value = fmt(S.fallback.number);
   }
-  function load(j) { S = { advisors: j.advisors, fallback: j.fallback, counts: j.counts || {}, next: j.next, last: j.last }; draw(); setDirty(false); }
+  function stats(j) { S.counts = j.counts || {}; S.today = j.today || {}; S.lastAt = j.lastAt || {}; S.log = j.log || []; S.next = j.next; S.lastId = j.lastId; }
+  function load(j) { S = { advisors: j.advisors, fallback: j.fallback, counts: {}, today: {}, lastAt: {}, log: [], next: null, lastId: null }; stats(j); draw(); drawSum(); setDirty(false); }
+  function drawSum() {
+    var L = S.advisors, byId = {}; L.forEach(function (a) { byId[a.id] = a; });
+    var nx = byId[S.next], la = byId[S.lastId];
+    $('#nowNext').textContent = nx ? nx.name : (L.length ? 'Línea oficial' : '—');
+    $('#nowNextS').textContent = nx ? fmt(nx.number) : (L.length ? 'Nadie disponible: todos ocupados o inactivos' : 'Agrega asesores');
+    $('#nowLast').textContent = la ? la.name : (S.log.length && S.log[0].fb ? 'Línea oficial' : '—');
+    var at = la && S.lastAt[la.id] ? +S.lastAt[la.id] : (S.log[0] ? S.log[0].t : 0);
+    $('#nowLastS').textContent = at ? ago(at) + ' · ' + clock(at) : 'Aún no hay consultas';
+    var av = L.filter(function (a) { return a.active && !a.busy; }).length, bz = L.filter(function (a) { return a.active && a.busy; }).length, off = L.filter(function (a) { return !a.active; }).length;
+    var tod = 0, tot = 0; L.forEach(function (a) { tod += +S.today[a.id] || 0; tot += +S.counts[a.id] || 0; });
+    var fbT = +S.today.oficial || 0;
+    $('#tiles').innerHTML = [['', tod, 'Consultas hoy'], ['', tot, 'Consultas en total'], ['ok', av, 'Disponibles ahora'], ['busy', bz, 'Ocupados'], ['', off, 'Inactivos'], ['', fbT, 'A línea oficial hoy']].map(function (t) { return '<div class="tile ' + t[0] + '"><b>' + t[1] + '</b><span>' + t[2] + '</span></div>'; }).join('');
+    $('#strip').innerHTML = L.length ? L.map(function (a, i) {
+      var cls = a.id === S.next ? ' next' : (!a.active ? ' off' : a.busy ? ' busy' : '');
+      var sub = a.id === S.next ? 'siguiente' : (!a.active ? 'inactivo' : a.busy ? 'ocupado' : (a.id === S.lastId ? 'último' : 'disponible'));
+      return '<span class="st' + cls + '"><i>' + (i + 1) + '</i>' + esc(a.name || '—') + ' <small>' + sub + '</small></span>' + (i < L.length - 1 ? '<span class="arrow" aria-hidden="true">→</span>' : '<span class="arrow" aria-hidden="true">↻</span>');
+    }).join('') : '<span class="mute small">Sin asesores todavía.</span>';
+    $('#hist').innerHTML = S.log.length ? S.log.slice(0, 15).map(function (e) {
+      return '<div class="row"><span class="t">' + clock(e.t) + '</span><span' + (e.fb ? ' class="fb"' : '') + '>' + (e.fb ? 'Línea oficial (todos ocupados)' : esc(e.name)) + '</span><span class="pl mute">' + esc(PL[e.pl] || e.pl || 'Sitio') + '</span></div>';
+    }).join('') : '<div class="row"><span class="mute">Todavía no hay consultas. Aparecerán aquí en cuanto alguien toque un botón de WhatsApp del sitio.</span></div>';
+    $('#liveTxt').textContent = 'En vivo · actualizado ' + clock(Date.now());
+  }
+  function refresh() {
+    clearTimeout(poll); if (!token || $('#vApp').hidden) return;
+    if (document.hidden || dirty) { poll = setTimeout(refresh, 10000); return; }
+    call('/api/admin/config').then(function (j) { if (!dirty) { S.advisors = j.advisors; S.fallback = j.fallback; stats(j); draw(); drawSum(); } }).catch(function () { $('#liveTxt').textContent = 'Sin conexión · reintentando'; }).then(function () { poll = setTimeout(refresh, 10000); });
+  }
 
   $('#list').addEventListener('input', function (e) {
     var el = e.target, row = el.closest('.adv'); if (!row) return; var a = S.advisors[+row.dataset.i];
@@ -188,9 +258,9 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
     btn.textContent = 'Guardar cambios';
   });
   $('#resetCnt').addEventListener('click', async function () {
-    if (this.dataset.sure !== '1') { var b = this; b.dataset.sure = '1'; b.textContent = '¿Seguro? Toca otra vez'; setTimeout(function () { b.dataset.sure = ''; b.textContent = 'Reiniciar contadores'; }, 3500); return; }
-    this.dataset.sure = ''; this.textContent = 'Reiniciar contadores';
-    try { var j = await call('/api/admin/reset-counts', { method: 'POST', body: {} }); if (dirty) { S.counts = j.counts || {}; draw(); } else load(j); note('Contadores en cero.'); } catch (err) { note(err.message, 'err'); }
+    if (this.dataset.sure !== '1') { var b = this; b.dataset.sure = '1'; b.textContent = '¿Seguro? Toca otra vez'; setTimeout(function () { b.dataset.sure = ''; b.textContent = 'Reiniciar contadores e historial'; }, 3500); return; }
+    this.dataset.sure = ''; this.textContent = 'Reiniciar contadores e historial';
+    try { var j = await call('/api/admin/reset-counts', { method: 'POST', body: {} }); if (dirty) { stats(j); draw(); drawSum(); } else load(j); note('Contadores en cero.'); } catch (err) { note(err.message, 'err'); }
   });
   $('#logout').addEventListener('click', function () { logout(false); });
   $('#loginForm').addEventListener('submit', async function (e) {
@@ -201,7 +271,7 @@ label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   async function start() {
     if (!token) return show('login');
-    try { load(await call('/api/admin/config')); show('app'); } catch (err) { if (!token) return; show('login'); var m = $('#loginMsg'); m.textContent = err.message; m.hidden = false; }
+    try { load(await call('/api/admin/config')); show('app'); refresh(); } catch (err) { if (!token) return; show('login'); var m = $('#loginMsg'); m.textContent = err.message; m.hidden = false; }
   }
   start();
 })();

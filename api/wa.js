@@ -8,9 +8,9 @@ module.exports = async (req, res) => {
   const text = String(q.text || '').slice(0, 1200);
   let number = '';
   try {
-    const p = await store.pick();
+    const p = await store.pick(q.pl);
     if (p && p.number) number = p.number;
-    else { const c = await store.readConfig(); number = normNumber(c.fallback && c.fallback.number); }
+    else { const c = await store.readConfig(); number = normNumber(c.fallback && c.fallback.number); await store.logFallback(q.pl, c.fallback && c.fallback.name); }
   } catch (e) { /* si la base falla, el cliente igual llega a WhatsApp con la línea oficial */ }
   if (!number) number = normNumber(process.env.DEFAULT_WA) || DEFAULT_FALLBACK.number;
   res.statusCode = 302;

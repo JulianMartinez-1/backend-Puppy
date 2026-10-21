@@ -40,6 +40,7 @@ function bridge(port) { return http.createServer((req, res) => { let b = ''; req
   const base = 'http://127.0.0.1:' + DP;
   const J = async (p, o = {}, tok) => { const r = await fetch(base + p, Object.assign({ redirect: 'manual' }, o, { headers: Object.assign({ 'Content-Type': 'application/json' }, tok ? { Authorization: 'Bearer ' + tok } : {}, o.headers || {}) })); const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) { /* no es json */ } return { s: r.status, j, h: r.headers, t }; };
   const wa = async txt => { const r = await J('/api/wa?text=' + encodeURIComponent(txt)); return { s: r.s, loc: r.h.get('location') }; };
+  const wa0 = pl => J('/api/wa?text=x&pl=' + pl);
   const numOf = loc => (loc.match(/wa\.me\/(\d+)/) || [])[1];
 
   let r = await J('/api/ping'); ok('ping responde y avisa que usa Redis', r.s === 200 && r.j.ok && r.j.store === 'redis' && r.j.available === 0, JSON.stringify(r.j));
@@ -68,6 +69,21 @@ function bridge(port) { return http.createServer((req, res) => { let b = ''; req
   for (const id of ids) await J('/api/admin/busy', { method: 'POST', body: JSON.stringify({ id, busy: true }) }, tok);
   r = await wa('todos ocupados'); ok('todos ocupados: va a la línea oficial', numOf(r.loc) === '573502053919', r.loc);
   for (const id of ids) await J('/api/admin/busy', { method: 'POST', body: JSON.stringify({ id, busy: false }) }, tok);
+
+  /* lo que muestra el panel: hoy, total, última consulta, historial y línea oficial */
+  await J('/api/admin/reset-counts', { method: 'POST', body: '{}' }, tok);
+  await wa0('portada'); await wa0('flotante'); await wa0('quiz-resultado');
+  r = await J('/api/admin/config', {}, tok); const S1 = r.j;
+  const hoy = Object.values(S1.today).reduce((a, b) => a + b, 0), tot1 = Object.values(S1.counts).reduce((a, b) => a + b, 0);
+  ok('panel: hoy y total cuentan 3 consultas', hoy === 3 && tot1 === 3, JSON.stringify(S1.today));
+  ok('panel: historial con 3 entradas y el lugar del botón', S1.log.length === 3 && S1.log[0].pl === 'quiz-resultado' && S1.log[2].pl === 'portada', S1.log.map(x => x.name + ':' + x.pl).join(','));
+  ok('panel: «último» y «siguiente» distintos y bien calculados', !!S1.lastId && !!S1.next && S1.lastId === S1.log[0].id && S1.next !== S1.lastId && S1.lastAt[S1.lastId] > 0, S1.lastId + ' → ' + S1.next);
+  for (const id of ids) await J('/api/admin/busy', { method: 'POST', body: JSON.stringify({ id, busy: true }) }, tok);
+  await wa0('faq'); r = await J('/api/admin/config', {}, tok);
+  ok('panel: consulta a la línea oficial queda anotada', r.j.today.oficial === 1 && r.j.log[0].fb === true && r.j.log[0].pl === 'faq' && r.j.next === null, JSON.stringify(r.j.log[0]));
+  for (const id of ids) await J('/api/admin/busy', { method: 'POST', body: JSON.stringify({ id, busy: false }) }, tok);
+  r = await J('/api/admin/reset-counts', { method: 'POST', body: '{}' }, tok);
+  ok('panel: reiniciar deja hoy, total e historial en cero', r.j.log.length === 0 && !Object.keys(r.j.today).length && !Object.keys(r.j.counts).length);
 
   /* concurrencia: 30 clics a la vez deben repartirse parejo (10/10/10) sin repetir por carrera */
   r = await J('/api/admin/reset-counts', { method: 'POST', body: '{}' }, tok);
