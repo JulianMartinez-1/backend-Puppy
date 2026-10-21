@@ -1,0 +1,67 @@
+PUPPY WORLD · PANEL DE ASESORES (rotación de WhatsApp)
+=======================================================
+Preparado por GO TO Marketing · octubre de 2026.
+
+QUÉ HACE
+--------
+- Cada vez que alguien toca un botón de WhatsApp del sitio, la consulta va al SIGUIENTE asesor de la lista.
+- Si un asesor está «ocupado» o «inactivo», se salta y pasa al siguiente. Al llegar al último, vuelve al primero.
+- Si todos están ocupados, las consultas van a la «línea oficial» (respaldo), para que nadie se quede sin respuesta.
+- El cliente maneja todo desde un panel web con clave (/admin): agregar o quitar asesores, cambiar nombres y números,
+  cambiar el orden, marcar «ocupado» con un toque y ver cuántas consultas recibió cada uno.
+- El verificador de asesores del sitio también usa esta lista: un número que el cliente agrega queda verificado solo.
+- Los 3 enlaces que muestran el número oficial a la vista (encabezado, contacto y pie de página) siempre van a la línea oficial.
+
+QUÉ HAY EN ESTA CARPETA
+-----------------------
+api/               Las funciones (wa, ping, verify y las del panel).
+lib/               Reglas de rotación, base de datos y clave.
+public/admin/      El panel (index.html).
+vercel.json        Configuración de Vercel.
+dev.js, test/      Solo para probar en tu computador (no hace falta para publicar).
+
+PUBLICARLO (una sola vez, unos 10 minutos)
+------------------------------------------
+Esto NO se publica con vercel.com/drop (Drop es solo para páginas sin funciones). Se publica como proyecto de Vercel:
+
+1. Sube esta carpeta a un repositorio de GitHub (github.com → New repository → «Add file → Upload files» y arrastra el contenido
+   de esta carpeta, no la carpeta misma). Alternativa si ya usas la terminal: entra a la carpeta y escribe  npx vercel
+2. En vercel.com → «Add New → Project» → elige ese repositorio → «Deploy». (Aún no funcionará: falta la base de datos.)
+3. En el proyecto de Vercel: pestaña «Storage» → «Create Database» → elige «Upstash Redis» (plan gratis) → conéctalo a este proyecto.
+   Vercel agrega solo las variables KV_REST_API_URL y KV_REST_API_TOKEN.
+4. Pestaña «Settings → Environment Variables» → agrega dos:
+      ADMIN_PASSWORD   la clave con la que entrará el cliente al panel (algo largo y difícil)
+      ADMIN_SECRET     una frase larga cualquiera, de 20 caracteres o más (la usa el sistema para firmar las sesiones)
+   (Opcional) DEFAULT_WA  el número de respaldo si la base de datos fallara, por ejemplo 573502053919.
+5. «Deployments» → los tres puntos del último despliegue → «Redeploy».
+6. Abre  https://TU-PROYECTO.vercel.app/admin  → entra con la clave → «Agregar asesor» (nombre, cargo, número) → «Guardar cambios».
+
+CONECTAR EL SITIO CON EL PANEL
+------------------------------
+En la carpeta del sitio hay un archivo pequeño, config.js. Contiene una línea:
+      window.PW_API = "";
+Escribe entre las comillas la dirección de tu proyecto, sin «/» al final. Ejemplo:
+      window.PW_API = "https://puppy-world-asesores.vercel.app";
+Luego vuelve a publicar el sitio. (Si prefieres, envíame la dirección y te devuelvo el sitio ya conectado.)
+Mientras config.js esté vacío, o si el panel no responde, el sitio sigue funcionando: todos los botones van a la línea oficial.
+
+USO DIARIO DEL PANEL (para el cliente)
+--------------------------------------
+- Ocupado ahora: interruptor naranja. Se aplica al instante; el asesor queda fuera de la rotación hasta que lo apagues.
+- Participa en la rotación: interruptor verde. Apágalo para vacaciones o para quien ya no atiende consultas.
+- Cambiar el orden: flechas ↑ ↓. Cambiar nombre, cargo o número: escribe y toca «Guardar cambios».
+- El número se escribe como siempre: 350 205 3919 (el sistema agrega el +57). Los números de otros países van con su indicativo.
+- «Siguiente consulta» te dice quién recibe la próxima.
+- Quitar asesor: botón rojo (pide confirmar tocando otra vez).
+
+DETALLES TÉCNICOS Y LÍMITES
+---------------------------
+- La rotación es por clic en un botón, no por persona: si alguien toca dos botones, cada clic puede ir a un asesor distinto.
+  Cada clic abre WhatsApp en una pestaña nueva con el mensaje del botón ya escrito.
+- El turno se calcula dentro de la base de datos (un script Lua de Redis), de modo que dos personas que tocan al mismo tiempo
+  nunca reciben el mismo asesor por carrera. Probado con 30 clics simultáneos: reparto exacto 10/10/10.
+- Los números de los asesores son públicos (quien abre el enlace de WhatsApp los ve); no se guarda ningún dato de los visitantes.
+- Si el panel dejara de responder justo después de que alguien cargó el sitio, ese clic fallaría; por eso el sitio comprueba
+  el panel al cargar y, si no responde, usa la línea oficial.
+- El plan gratis de Vercel y de Upstash tiene límites de uso mensual; revísalos en sus páginas si el sitio tiene mucho tráfico.
+- La línea oficial que se ve escrita en el sitio (+57 350 205 3919) está en el diseño de la página; si cambia, hay que cambiarla en el sitio.

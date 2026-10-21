@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Asesores · Puppy World</title>
+<style>
+:root{--bg:#eef1f0;--card:#fff;--ink:#0d0f10;--mute:#5d6669;--line:#d9dfde;--mint:#9fdcd3;--mint-d:#2d7f73;--violet:#4a1fc4;--bad:#c0392b;--ok:#1f8a5b;--warn:#b8741a;--r:16px}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1112;--card:#171b1c;--ink:#f1f4f3;--mute:#98a3a5;--line:#2a3133;--mint:#2d7f73;--mint-d:#9fdcd3;--violet:#9d86ff;--bad:#ff7b6b;--ok:#4cd39a;--warn:#f0b35c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 80px}
+main{max-width:880px;margin:0 auto}
+h1{font-size:1.6rem;letter-spacing:-.02em;margin:0 0 4px}
+h2{font-size:1.05rem;margin:0 0 6px}
+p{margin:0}.mute{color:var(--mute)}.small{font-size:.88rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--mint-d);display:grid;place-items:center;font-weight:800;font-size:.9rem;flex:none}
+button,input{font:inherit;color:inherit}
+.btn{border:0;border-radius:999px;padding:11px 18px;background:var(--ink);color:var(--bg);font-weight:700;cursor:pointer;min-height:44px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.mint{background:var(--mint);color:#0d0f10}
+.btn.danger{background:transparent;color:var(--bad);border:1.5px solid var(--bad)}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn:focus-visible,input:focus-visible,.sw:focus-within{outline:3px solid var(--violet);outline-offset:2px}
+input[type=text],input[type=password],input[type=tel]{width:100%;padding:11px 13px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);min-height:44px}
+label.f{display:grid;gap:4px;font-size:.82rem;color:var(--mute);font-weight:600}
+.login{max-width:380px;margin:12vh auto 0;display:grid;gap:14px}
+.msg{padding:10px 14px;border-radius:12px;font-size:.92rem;margin-bottom:14px}
+.msg.err{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.how{margin-bottom:16px;display:grid;gap:6px}
+.next{display:inline-flex;gap:8px;align-items:center;background:var(--mint);color:#0d0f10;border-radius:999px;padding:6px 14px;font-weight:700;font-size:.92rem}
+.list{display:grid;gap:12px;margin-bottom:16px}
+.adv{display:grid;gap:12px;border:1.5px solid var(--line);border-radius:var(--r);padding:14px;background:var(--card)}
+.adv.is-next{border-color:var(--mint-d);box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 45%,transparent)}
+.adv.off{opacity:.62}
+.adv-h{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.pos{width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:.9rem;flex:none}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.bdg{font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--line);color:var(--mute)}
+.bdg.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.bdg.busy{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.bdg.next{background:var(--mint);color:#0d0f10}
+.fields{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
+.sws{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sw{display:inline-flex;gap:10px;align-items:center;padding:8px 14px;border:1.5px solid var(--line);border-radius:999px;cursor:pointer;user-select:none;font-weight:600;font-size:.92rem;min-height:44px}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw i{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex:none}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked+i{background:var(--ok)}
+.sw.busy input:checked+i{background:var(--warn)}
+.sw input:checked+i::after{transform:translateX(16px)}
+.tools{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.ic{min-width:44px;padding:8px 12px}
+.foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;position:sticky;bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 12px 10px 18px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fb{margin-top:16px;display:grid;gap:12px}
+.fb .fields{grid-template-columns:1fr 1fr}
+.cnt{font-variant-numeric:tabular-nums}
+.empty{text-align:center;padding:26px;border:1.5px dashed var(--line);border-radius:var(--r)}
+@media (max-width:640px){.fields,.fb .fields{grid-template-columns:1fr}.tools{margin-left:0}.foot{border-radius:var(--r)}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<section id="vLogin" class="card login" hidden>
+  <div class="brand"><span class="logo">PW</span><div><h1>Asesores</h1><p class="mute small">Panel de Puppy World</p></div></div>
+  <div id="loginMsg" class="msg err" hidden></div>
+  <form id="loginForm" style="display:grid;gap:12px">
+    <label class="f">Clave de acceso<input id="pass" type="password" autocomplete="current-password" required></label>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+</section>
+
+<section id="vApp" hidden>
+  <div class="top">
+    <div class="brand"><span class="logo">PW</span><div><h1>Asesores de WhatsApp</h1><p class="mute small">Quién recibe las consultas del sitio</p></div></div>
+    <button class="btn alt" id="logout" type="button">Salir</button>
+  </div>
+  <div id="msg" class="msg" hidden role="status"></div>
+
+  <div class="card how">
+    <h2>Cómo funciona</h2>
+    <p class="mute small">Cada vez que alguien toca un botón de WhatsApp del sitio, la consulta va al <b>siguiente asesor de la lista</b>. Si un asesor está <b>ocupado</b> o <b>inactivo</b>, se salta y pasa al siguiente. Al llegar al último, vuelve al primero.</p>
+    <p class="small" id="nextLine"></p>
+  </div>
+
+  <div id="list" class="list"></div>
+  <div class="empty" id="empty" hidden><p>Aún no hay asesores. Agrega el primero.</p></div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+    <button class="btn mint" id="add" type="button">+ Agregar asesor</button>
+    <button class="btn alt" id="resetCnt" type="button">Reiniciar contadores</button>
+  </div>
+
+  <div class="card fb">
+    <h2>Línea oficial (respaldo)</h2>
+    <p class="mute small">Se usa cuando no hay ningún asesor disponible (todos ocupados o inactivos), para que nadie se quede sin respuesta.</p>
+    <div class="fields">
+      <label class="f">Nombre<input id="fbName" type="text" maxlength="60"></label>
+      <label class="f">Número de WhatsApp<input id="fbNum" type="tel" inputmode="tel" placeholder="350 205 3919"></label>
+    </div>
+  </div>
+  <div style="height:16px"></div>
+  <div class="foot"><span class="mute small" id="dirty">Sin cambios</span><button class="btn" id="save" type="button" disabled>Guardar cambios</button></div>
+</section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var API = location.origin;
+  var token = ''; try { token = sessionStorage.getItem('pw_tok') || ''; } catch (e) { /* sin almacenamiento */ }
+  var S = null, dirty = false, noteTimer = 0;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function note(t, kind) { var m = $('#msg'); m.textContent = t; m.className = 'msg ' + (kind || 'ok'); m.hidden = !t; clearTimeout(noteTimer); if (t && kind !== 'err') noteTimer = setTimeout(function () { m.hidden = true; }, 4500); }
+  function fmt(n) { n = String(n || '').replace(/\D/g, ''); if (n.indexOf('57') === 0 && n.length === 12) n = n.slice(2); return n.length === 10 ? n.slice(0, 3) + ' ' + n.slice(3, 6) + ' ' + n.slice(6) : n; }
+  async function call(path, opt) {
+    opt = opt || {}; var h = { 'Content-Type': 'application/json' }; if (token) h.Authorization = 'Bearer ' + token;
+    var r = await fetch(API + path, { method: opt.method || 'GET', headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined });
+    var j = await r.json().catch(function () { return {}; });
+    if (r.status === 401 && path !== '/api/admin/login') { logout(true); throw new Error(j.error || 'Sesión vencida.'); }
+    if (!r.ok || j.ok === false) throw new Error(j.error || 'No se pudo completar (' + r.status + ').');
+    return j;
+  }
+  function show(v) { $('#vLogin').hidden = v !== 'login'; $('#vApp').hidden = v !== 'app'; }
+  function logout(expired) { token = ''; try { sessionStorage.removeItem('pw_tok'); } catch (e) { /* nada */ } show('login'); if (expired) { var m = $('#loginMsg'); m.textContent = 'Tu sesión venció. Entra de nuevo.'; m.hidden = false; } }
+
+  function setDirty(v) { dirty = v; $('#save').disabled = !v; $('#dirty').textContent = v ? 'Hay cambios sin guardar' : 'Sin cambios'; }
+
+  function draw() {
+    var L = S.advisors, box = $('#list'); $('#empty').hidden = L.length > 0;
+    var nx = L.filter(function (a) { return a.id === S.next; })[0];
+    $('#nextLine').innerHTML = nx ? 'Siguiente consulta: <span class="next">' + esc(nx.name) + '</span>' : (L.length ? '<b>Nadie disponible ahora:</b> las consultas van a la línea oficial.' : '');
+    box.innerHTML = L.map(function (a, i) {
+      var c = (S.counts && S.counts[a.id]) || 0, isN = a.id === S.next;
+      return '<article class="adv' + (isN ? ' is-next' : '') + (a.active ? '' : ' off') + '" data-i="' + i + '">' +
+        '<div class="adv-h"><div style="display:flex;gap:10px;align-items:center"><span class="pos" aria-label="Turno ' + (i + 1) + '">' + (i + 1) + '</span><b>' + esc(a.name || 'Nuevo asesor') + '</b></div>' +
+        '<div class="badges">' + (isN ? '<span class="bdg next">Siguiente</span>' : '') + (!a.active ? '<span class="bdg">Inactivo</span>' : a.busy ? '<span class="bdg busy">Ocupado</span>' : '<span class="bdg ok">Disponible</span>') + '<span class="bdg cnt" title="Consultas asignadas">' + c + ' consultas</span></div></div>' +
+        '<div class="fields"><label class="f">Nombre<input type="text" data-k="name" maxlength="60" value="' + esc(a.name) + '"></label>' +
+        '<label class="f">Cargo<input type="text" data-k="role" maxlength="60" value="' + esc(a.role) + '" placeholder="Asesor comercial"></label>' +
+        '<label class="f">WhatsApp<input type="tel" inputmode="tel" data-k="number" value="' + esc(fmt(a.number)) + '" placeholder="350 205 3919"></label></div>' +
+        '<div class="sws"><label class="sw"><input type="checkbox" data-k="active"' + (a.active ? ' checked' : '') + '><i></i>Participa en la rotación</label>' +
+        '<label class="sw busy"><input type="checkbox" data-busy' + (a.busy ? ' checked' : '') + '><i></i>Ocupado ahora</label>' +
+        '<div class="tools"><button class="btn alt ic" type="button" data-up aria-label="Subir"' + (i === 0 ? ' disabled' : '') + '>↑</button><button class="btn alt ic" type="button" data-down aria-label="Bajar"' + (i === L.length - 1 ? ' disabled' : '') + '>↓</button><button class="btn danger" type="button" data-del>Quitar</button></div></div></article>';
+    }).join('');
+    $('#fbName').value = S.fallback.name || ''; $('#fbNum').value = fmt(S.fallback.number);
+  }
+  function load(j) { S = { advisors: j.advisors, fallback: j.fallback, counts: j.counts || {}, next: j.next, last: j.last }; draw(); setDirty(false); }
+
+  $('#list').addEventListener('input', function (e) {
+    var el = e.target, row = el.closest('.adv'); if (!row) return; var a = S.advisors[+row.dataset.i];
+    if (el.dataset.k === 'active') { a.active = el.checked; row.classList.toggle('off', !a.active); setDirty(true); return; }
+    if (el.dataset.k) { a[el.dataset.k] = el.value; if (el.dataset.k === 'name') row.querySelector('.adv-h b').textContent = el.value || 'Nuevo asesor'; setDirty(true); }
+  });
+  $('#list').addEventListener('change', async function (e) {
+    var el = e.target; if (!el.hasAttribute('data-busy')) return; var row = el.closest('.adv'), a = S.advisors[+row.dataset.i];
+    if (dirty || /^new/.test(a.id)) { a.busy = el.checked; setDirty(true); note('Guarda los cambios para aplicar el estado.', 'ok'); return; }
+    try { var j = await call('/api/admin/busy', { method: 'POST', body: { id: a.id, busy: el.checked } }); load(j); note(a.name + (el.checked ? ' quedó ocupado: se salta en la rotación.' : ' quedó disponible.')); }
+    catch (err) { el.checked = !el.checked; note(err.message, 'err'); }
+  });
+  $('#list').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var row = b.closest('.adv'), i = +row.dataset.i, L = S.advisors;
+    if (b.hasAttribute('data-up') && i > 0) { var t = L[i]; L[i] = L[i - 1]; L[i - 1] = t; draw(); setDirty(true); }
+    else if (b.hasAttribute('data-down') && i < L.length - 1) { var u = L[i]; L[i] = L[i + 1]; L[i + 1] = u; draw(); setDirty(true); }
+    else if (b.hasAttribute('data-del')) {
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = '¿Seguro? Toca otra vez'; setTimeout(function () { if (b.isConnected) { b.dataset.sure = ''; b.textContent = 'Quitar'; } }, 3500); return; }
+      L.splice(i, 1); draw(); setDirty(true);
+    }
+  });
+  $('#add').addEventListener('click', function () {
+    S.advisors.push({ id: 'new' + Date.now().toString(36), name: '', role: '', number: '', active: true, busy: false }); draw(); setDirty(true);
+    var rows = document.querySelectorAll('.adv'); var last = rows[rows.length - 1]; if (last) { last.scrollIntoView({ block: 'center' }); last.querySelector('input[data-k=name]').focus(); }
+  });
+  $('#fbName').addEventListener('input', function () { S.fallback.name = this.value; setDirty(true); });
+  $('#fbNum').addEventListener('input', function () { S.fallback.number = this.value; setDirty(true); });
+  $('#save').addEventListener('click', async function () {
+    var btn = this; btn.disabled = true; btn.textContent = 'Guardando…';
+    try {
+      var payload = { advisors: S.advisors.map(function (a) { return { id: /^new/.test(a.id) ? '' : a.id, name: a.name, role: a.role, number: a.number, active: a.active, busy: a.busy }; }), fallback: S.fallback };
+      var j = await call('/api/admin/config', { method: 'PUT', body: payload }); load(j); note('Guardado. Los cambios ya están en el sitio.');
+    } catch (err) { note(err.message, 'err'); btn.disabled = false; }
+    btn.textContent = 'Guardar cambios';
+  });
+  $('#resetCnt').addEventListener('click', async function () {
+    if (this.dataset.sure !== '1') { var b = this; b.dataset.sure = '1'; b.textContent = '¿Seguro? Toca otra vez'; setTimeout(function () { b.dataset.sure = ''; b.textContent = 'Reiniciar contadores'; }, 3500); return; }
+    this.dataset.sure = ''; this.textContent = 'Reiniciar contadores';
+    try { var j = await call('/api/admin/reset-counts', { method: 'POST', body: {} }); if (dirty) { S.counts = j.counts || {}; draw(); } else load(j); note('Contadores en cero.'); } catch (err) { note(err.message, 'err'); }
+  });
+  $('#logout').addEventListener('click', function () { logout(false); });
+  $('#loginForm').addEventListener('submit', async function (e) {
+    e.preventDefault(); var m = $('#loginMsg'); m.hidden = true;
+    try { var j = await call('/api/admin/login', { method: 'POST', body: { password: $('#pass').value } }); token = j.token; try { sessionStorage.setItem('pw_tok', token); } catch (x) { /* nada */ } $('#pass').value = ''; await start(); }
+    catch (err) { m.textContent = err.message; m.hidden = false; }
+  });
+  window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  async function start() {
+    if (!token) return show('login');
+    try { load(await call('/api/admin/config')); show('app'); } catch (err) { if (!token) return; show('login'); var m = $('#loginMsg'); m.textContent = err.message; m.hidden = false; }
+  }
+  start();
+})();
+</script>
+</body>
+</html>

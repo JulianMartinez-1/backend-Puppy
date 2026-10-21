@@ -1,0 +1,11 @@
+{
+  "name": "puppy-world-asesores",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panel y rotación de asesores de WhatsApp para Puppy World (funciones de Vercel + Upstash Redis)",
+  "scripts": {
+    "dev": "PW_STORE=memory ADMIN_PASSWORD=prueba ADMIN_SECRET=secreto-local node dev.js",
+    "test": "node test/run.js"
+  },
+  "engines": { "node": ">=18" }
+}
