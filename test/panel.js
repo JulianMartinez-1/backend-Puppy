@@ -4,46 +4,86 @@ process.env.PW_STORE = 'memory'; process.env.ADMIN_PASSWORD = 'clave-panel'; pro
 require('../dev.js');
 const SP = '/tmp/claude-0/-home-claude/cab64995-7385-5c14-ad49-4ae3a4800189/scratchpad';
 let bad = 0; const ok = (n, c, x) => { if (!c) bad++; console.log((c ? 'OK   ' : 'FALLA') + ' ' + n + (x ? ' · ' + x : '')); };
+const B = 'http://localhost:3193';
 (async () => {
   const br = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
-  for (const [W, H, tag] of [[1280, 900, 'desk'], [390, 844, 'mov']]) {
-    { const L = await (await fetch('http://localhost:3193/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'clave-panel' }) })).json();
-      await fetch('http://localhost:3193/api/admin/config', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + L.token }, body: JSON.stringify({ advisors: [], fallback: { name: 'Oficial', number: '3502053919' } }) }); }
+  for (const [W, H, tag] of [[1280, 900, 'desk'], [390, 844, 'mov'], [320, 700, 'min']]) {
+    const L = await (await fetch(B + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: 'clave-panel' }) })).json();
+    const H1 = { 'Content-Type': 'application/json', Authorization: 'Bearer ' + L.token };
+    await fetch(B + '/api/admin/config', { method: 'PUT', headers: H1, body: JSON.stringify({ advisors: [], fallback: { name: 'Oficial', number: '3502053919' } }) });
+    await fetch(B + '/api/admin/reset-counts', { method: 'POST', headers: H1, body: '{}' });
+    await fetch(B + '/api/admin/tracking', { method: 'PUT', headers: H1, body: JSON.stringify({}) });
     const ctx = await br.newContext({ viewport: { width: W, height: H } }); const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
-    await p.goto('http://localhost:3193/admin'); await p.waitForTimeout(500);
-    ok(tag + ' muestra el acceso con clave', await p.locator('#vLogin').isVisible());
+    const tab = async n => { await p.click('[data-tab=' + n + ']'); await p.waitForTimeout(150); };
+    await p.goto(B + '/admin'); await p.waitForTimeout(500);
+    ok(tag + ' muestra el acceso con clave (sin barra de pestañas)', await p.locator('#vLogin').isVisible() && !(await p.locator('#bar').isVisible()));
     await p.fill('#pass', 'mala'); await p.click('#loginForm button'); await p.waitForTimeout(1100);
     ok(tag + ' clave mala: mensaje', /incorrecta/.test(await p.locator('#loginMsg').innerText()));
-    await p.fill('#pass', 'clave-panel'); await p.click('#loginForm button'); await p.waitForTimeout(600);
-    ok(tag + ' entra al panel', await p.locator('#vApp').isVisible());
-    ok(tag + ' sin asesores: mensaje vacío', await p.locator('#empty').isVisible());
+    await p.fill('#pass', 'clave-panel'); await p.click('#loginForm button'); await p.waitForTimeout(700);
+    ok(tag + ' entra al panel en «Resumen»', await p.locator('#vApp').isVisible() && await p.locator('#bar').isVisible() && await p.locator('[data-pane=resumen]').isVisible());
+    ok(tag + ' resumen sin asesores: avisa', /Agrega asesores/.test(await p.locator('#nowNextS').innerText()));
+    await tab('asesores');
+    ok(tag + ' asesores: mensaje vacío', await p.locator('#empty').isVisible());
     for (const [n, num] of [['Ana', '300 111 2222'], ['Luis', '3003334444'], ['Marta', '3005556666']]) { await p.click('#add'); await p.waitForTimeout(100); const rows = p.locator('.adv'); const r = rows.nth((await rows.count()) - 1); await r.locator('[data-k=name]').fill(n); await r.locator('[data-k=number]').fill(num); }
-    ok(tag + ' guardar habilitado', await p.locator('#save').isEnabled());
+    ok(tag + ' guardar habilitado y pestaña marcada', await p.locator('#save').isEnabled() && await p.locator('#dotA').isVisible());
     await p.click('#save'); await p.waitForTimeout(600);
-    ok(tag + ' guardó y avisa', /Guardado/.test(await p.locator('#msg').innerText()) && (await p.locator('.adv').count()) === 3);
-    ok(tag + ' "siguiente" = Ana', /Ana/.test(await p.locator('#nowNext').innerText()));
+    ok(tag + ' guardó y avisa', /Guardado/.test(await p.locator('#msg').innerText()) && (await p.locator('.adv').count()) === 3 && !(await p.locator('#dotA').isVisible()));
+    await tab('resumen');
+    ok(tag + ' «siguiente» = Ana', /Ana/.test(await p.locator('#nowNext').innerText()));
+    await tab('asesores');
     await p.locator('.adv').nth(0).locator('.sw.busy').click(); await p.waitForTimeout(500);
-    ok(tag + ' ocupado al instante: Ana ocupada, siguiente = Luis', /Ocupado/.test(await p.locator('.adv').nth(0).locator('.badges').innerText()) && /Luis/.test(await p.locator('#nowNext').innerText()));
-    const wa = await p.evaluate(async () => (await fetch('/api/wa?text=hola', { redirect: 'manual' })).type);
+    await tab('resumen');
+    ok(tag + ' ocupado al instante: siguiente = Luis', /Luis/.test(await p.locator('#nowNext').innerText()));
+    await tab('asesores');
+    ok(tag + ' ocupado al instante: Ana figura ocupada', /Ocupado/.test(await p.locator('.adv').nth(0).locator('.badges').innerText()));
+    await p.evaluate(async () => { await fetch('/api/wa?text=hola', { redirect: 'manual' }); });
     await p.locator('.adv').nth(1).locator('[data-down]').click(); await p.waitForTimeout(100);
     ok(tag + ' reordenar marca cambios', /sin guardar/.test(await p.locator('#dirty').innerText()));
     await p.click('#save'); await p.waitForTimeout(500);
-    ok(tag + ' orden guardado: Marta antes que Luis', (await p.locator('.adv-h b').allInnerTexts()).join() === 'Ana,Marta,Luis');
+    ok(tag + ' orden guardado: Marta antes que Luis', (await p.locator('.who b').allInnerTexts()).join() === 'Ana,Marta,Luis');
     await p.locator('.adv').nth(2).locator('[data-del]').click(); await p.locator('.adv').nth(2).locator('[data-del]').click(); await p.waitForTimeout(100);
     await p.click('#save'); await p.waitForTimeout(500);
     ok(tag + ' quitar asesor (con confirmación)', (await p.locator('.adv').count()) === 2);
     await p.locator('.adv').nth(0).locator('.sw.busy').click(); await p.waitForTimeout(400);
-    /* clics reales del sitio: el panel los muestra solo, sin recargar */
     for (const pl of ['portada', 'flotante', 'quiz-resultado']) await p.evaluate(async pl => { await fetch('/api/wa?text=hola&pl=' + pl, { redirect: 'manual' }); }, pl);
-    await p.waitForTimeout(11500);
-    ok(tag + ' en vivo: el panel muestra las 3 consultas del sitio sin recargar', (await p.locator('#hist .row').count()) >= 3 && /Quiz/.test(await p.locator('#hist .row').nth(0).innerText()) && /flotante/.test(await p.locator('#hist .row').nth(1).innerText()) && /Portada/.test(await p.locator('#hist .row').nth(2).innerText()) && +(await p.locator('#tiles .tile b').first().innerText()) >= 3, (await p.locator('#tiles').innerText()).replace(/\n+/g, ' ') + ' | ' + (await p.locator('#hist').innerText()).replace(/\n+/g, ' / '));
-    ok(tag + ' en vivo: «última consulta» y «siguiente» visibles', (await p.locator('#nowLast').innerText()) !== '—' && (await p.locator('#nowNext').innerText()) !== '—' && /Último en recibir/.test(await p.locator('#list').innerText()));
-    await p.locator('#vApp').screenshot({ path: SP + '/panel_' + tag + '.png', fullPage: true }).catch(() => {});
+    await tab('resumen'); await p.waitForTimeout(11500);
+    ok(tag + ' en vivo: el panel muestra las 3 consultas del sitio sin recargar', (await p.locator('#hist .hrow').count()) >= 3 && /Quiz/.test(await p.locator('#hist .hrow').nth(0).innerText()) && /flotante/.test(await p.locator('#hist .hrow').nth(1).innerText()) && /Portada/.test(await p.locator('#hist .hrow').nth(2).innerText()) && +(await p.locator('#tiles .tile b').first().innerText()) >= 3, (await p.locator('#tiles').innerText()).replace(/\n+/g, ' '));
+    ok(tag + ' en vivo: «última consulta» y «siguiente» visibles', (await p.locator('#nowLast').innerText()) !== '—' && (await p.locator('#nowNext').innerText()) !== '—');
+    ok(tag + ' resumen: estado del sistema', /Panel conectado/.test(await p.locator('#status').innerText()) && /sin configurar/i.test(await p.locator('#status').innerText()));
+    if (tag !== 'min') await p.screenshot({ path: SP + '/panel_resumen_' + tag + '.png', fullPage: true });
+
+    /* ---- Seguimiento ---- */
+    await tab('seguimiento');
+    ok(tag + ' seguimiento: 7 herramientas y estado «Sin configurar»', (await p.locator('.tool').count()) === 7 && (await p.locator('.tool [data-st]').allInnerTexts()).every(x => /Sin configurar/.test(x)));
+    await p.fill('[data-t=gtm]', 'gtm-abc1234'); await p.fill('[data-t=ga4]', 'xx');
+    ok(tag + ' seguimiento: ID dudoso se marca «Revisa el ID»', /Revisa/.test(await p.locator('[data-tool=ga4] [data-st]').innerText()) && /Listo/.test(await p.locator('[data-tool=gtm] [data-st]').innerText()));
+    await p.click('#saveT'); await p.waitForTimeout(500);
+    ok(tag + ' seguimiento: el servidor rechaza un ID malo con mensaje claro', /Google Analytics 4/.test(await p.locator('#msg').innerText()), (await p.locator('#msg').innerText()).slice(0, 80));
+    await p.fill('[data-t=ga4]', ''); await p.fill('[data-t=meta]', "fbq('init', '123456789012345');"); await p.fill('[data-t=ads]', 'AW-123456789/AbCdEfGhIjK');
+    ok(tag + ' seguimiento: pegar el código también sirve', /Se detectó|Listo/.test(await p.locator('[data-tool=meta] [data-st]').innerText()));
+    ok(tag + ' seguimiento: aviso de contar doble (Tag Manager + píxel)', await p.locator('#tWarn').isVisible());
+    await p.fill('#tHead', '<script>window.__pwCustom=1</script>');
+    await p.click('#saveT'); await p.waitForTimeout(600);
+    ok(tag + ' seguimiento: guardó', /Seguimiento guardado/.test(await p.locator('#msg').innerText()) && !(await p.locator('#dotT').isVisible()));
+    ok(tag + ' seguimiento: normalizó los IDs (GTM en mayúsculas, ID y etiqueta de Ads separados)', await p.inputValue('[data-t=gtm]') === 'GTM-ABC1234' && await p.inputValue('[data-t=meta]') === '123456789012345' && await p.inputValue('[data-t=ads]') === 'AW-123456789' && await p.inputValue('[data-t=adsLabel]') === 'AbCdEfGhIjK');
+    const js = await (await fetch(B + '/api/t')).text();
+    ok(tag + ' seguimiento: el sitio recibe el script con esos IDs', /GTM-ABC1234/.test(js) && /123456789012345/.test(js) && /AbCdEfGhIjK/.test(js) && !/clave-panel/.test(js));
+    await p.locator('#tOn').evaluate(e => e.click()); await p.click('#saveT'); await p.waitForTimeout(500);
+    const js2 = await (await fetch(B + '/api/t')).text();
+    ok(tag + ' seguimiento: en pausa el script queda vacío', !/GTM-ABC1234/.test(js2) && /pausa/.test(js2));
+    await tab('resumen'); ok(tag + ' resumen: muestra «Seguimiento en pausa»', /en pausa/i.test(await p.locator('#status').innerText()));
+    await tab('seguimiento'); await p.locator('#tOn').evaluate(e => e.click()); await p.click('#saveT'); await p.waitForTimeout(500);
+    if (tag !== 'min') await p.screenshot({ path: SP + '/panel_seguimiento_' + tag + '.png', fullPage: true });
+    await tab('asesores');
+    if (tag !== 'min') await p.screenshot({ path: SP + '/panel_asesores_' + tag + '.png', fullPage: true });
     await p.fill('#fbNum', '123'); await p.click('#save'); await p.waitForTimeout(500);
-    await p.reload(); await p.waitForTimeout(600);
+    ok(tag + ' línea oficial inválida: error claro', /línea oficial/.test(await p.locator('#msg').innerText()));
+    await p.reload(); await p.waitForTimeout(700);
     ok(tag + ' al recargar sigue con la sesión', await p.locator('#vApp').isVisible() && (await p.locator('.adv').count()) === 2);
-    await p.click('#logout'); ok(tag + ' salir vuelve al acceso', await p.locator('#vLogin').isVisible());
-    ok(tag + ' sin desborde ni errores JS', (await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0 && !errs.length, errs.join(';'));
+    await tab('seguimiento'); ok(tag + ' al recargar el seguimiento sigue guardado', await p.inputValue('[data-t=gtm]') === 'GTM-ABC1234');
+    for (const t of ['resumen', 'asesores', 'seguimiento']) { await tab(t); ok(tag + ' sin desborde horizontal en «' + t + '»', (await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0); }
+    await p.click('#logout'); ok(tag + ' salir vuelve al acceso', await p.locator('#vLogin').isVisible() && !(await p.locator('#bar').isVisible()));
+    ok(tag + ' sin errores JS', !errs.length, errs.join(';'));
     await ctx.close();
   }
   console.log(bad ? bad + ' FALLAS' : 'TODO OK'); await br.close(); process.exit(bad ? 1 : 0);

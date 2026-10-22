@@ -103,5 +103,18 @@ function bridge(port) { return http.createServer((req, res) => { let b = ''; req
   r = await J('/api/wa?text=' + encodeURIComponent('Hola 🐶 ¿Tienen cachorros? & más')); ok('mensaje con tildes, emoji y & llega íntegro', decodeURIComponent((r.h.get('location').split('text=')[1])) === 'Hola 🐶 ¿Tienen cachorros? & más');
   r = await J('/api/wa'); ok('sin texto: redirige igual', r.s === 302 && !/text=/.test(r.h.get('location')));
 
+  /* seguimiento (Tag Manager, píxeles): guardar, validar y entregar al sitio, contra Redis real */
+  r = await J('/api/admin/tracking'); ok('seguimiento: sin clave 401', r.s === 401);
+  r = await J('/api/admin/tracking', { method: 'PUT', body: JSON.stringify({ gtm: 'GTM-ABC1234' }) }); ok('seguimiento: guardar sin clave 401', r.s === 401);
+  r = await J('/api/admin/tracking', {}, tok); ok('seguimiento: vacío al inicio', r.s === 200 && r.j.tracking.gtm === '' && r.j.tracking.paused === false);
+  r = await J('/api/t'); ok('script público sin configurar: JS válido y vacío', r.s === 200 && /sin configurar/.test(r.t) && /javascript/.test(r.h.get('content-type')), r.t.trim());
+  r = await J('/api/admin/tracking', { method: 'PUT', body: JSON.stringify({ gtm: 'gtm-abc1234', meta: "fbq('init','123456789012345')", ads: 'AW-123456789/AbCdEfGhIj', headCode: '<script>1</script>' }) }, tok);
+  ok('seguimiento: guarda y normaliza', r.s === 200 && r.j.tracking.gtm === 'GTM-ABC1234' && r.j.tracking.meta === '123456789012345' && r.j.tracking.ads === 'AW-123456789' && r.j.tracking.adsLabel === 'AbCdEfGhIj', JSON.stringify(r.j.tracking).slice(0, 140));
+  r = await J('/api/admin/tracking', { method: 'PUT', body: JSON.stringify({ ga4: 'cualquier cosa' }) }, tok); ok('seguimiento: ID inválido → error claro', r.s === 400 && /Google Analytics 4/.test(r.j.error), r.j.error);
+  r = await J('/api/admin/tracking', { method: 'PUT', body: JSON.stringify({ gtm: 'GTM-ABC1234', headCode: 'x'.repeat(20001) }) }, tok); ok('seguimiento: código demasiado largo → error claro', r.s === 400 && /largo/.test(r.j.error));
+  r = await J('/api/t'); ok('script público con los IDs, cacheable 1 min, sin datos privados', r.s === 200 && /GTM-ABC1234/.test(r.t) && /123456789012345/.test(r.t) && !/clave-de-prueba/.test(r.t) && /max-age=60/.test(r.h.get('cache-control')) && r.h.get('access-control-allow-origin') === '*', r.h.get('cache-control'));
+  r = await J('/api/admin/tracking', { method: 'PUT', body: JSON.stringify({ gtm: 'GTM-ABC1234', paused: true }) }, tok); r = await J('/api/t'); ok('seguimiento en pausa: el script queda vacío', !/GTM-ABC1234/.test(r.t));
+  r = await J('/api/ping'); ok('el panel sigue respondiendo después', r.s === 200 && r.j.ok);
+
   console.log(bad ? bad + ' FALLAS' : 'TODO OK'); redis.kill(); process.exit(bad ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

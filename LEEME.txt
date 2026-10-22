@@ -12,9 +12,13 @@ QUÉ HACE
 - El verificador de asesores del sitio también usa esta lista: un número que el cliente agrega queda verificado solo.
 - Los 3 enlaces que muestran el número oficial a la vista (encabezado, contacto y pie de página) siempre van a la línea oficial.
 
+EL PANEL TIENE TRES PESTAÑAS
+----------------------------
+Resumen (rotación en vivo), Asesores (lista, orden, números, ocupado) y Seguimiento (Tag Manager, píxeles, Google Ads, código personalizado).
+
 QUÉ HAY EN ESTA CARPETA
 -----------------------
-api/               Las funciones (wa, ping, verify y las del panel).
+api/               Las funciones (wa, ping, verify, t = script de seguimiento, y las del panel).
 lib/               Reglas de rotación, base de datos y clave.
 public/admin/      El panel (index.html).
 vercel.json        Configuración de Vercel.
@@ -55,6 +59,25 @@ LO QUE SE VE EN EL PANEL (se actualiza solo cada 10 segundos)
 - En cada asesor: consultas de hoy, total y hace cuánto recibió la última.
 - «Reiniciar contadores e historial» deja todo en cero.
 Nota: el panel cuenta las consultas que el sitio entregó a cada asesor. Lo que pasa después dentro de WhatsApp (si respondió, si quedó pendiente) no pasa por aquí.
+
+SEGUIMIENTO Y PUBLICIDAD (pestaña «Seguimiento»)
+------------------------------------------------
+Sirve para instalar en el sitio, sin tocar código, las herramientas de medición y publicidad. El cliente pega el ID de cada una, guarda, y el sitio
+las carga solo (en menos de 1 minuto, sin volver a publicar el sitio):
+- Google Tag Manager  (GTM-XXXXXXX)
+- Google Analytics 4  (G-XXXXXXXXXX)
+- Google Ads          (AW-123456789) y, opcional, su etiqueta de conversión: cada clic en WhatsApp cuenta como conversión
+- Meta Pixel          (Facebook e Instagram; ID numérico)
+- TikTok Pixel, Microsoft Clarity y Hotjar
+- Código personalizado: para cualquier otra herramienta (se pega el fragmento que entrega, «antes de cerrar la cabecera» o «al final de la página»)
+Se puede pegar solo el ID o el código completo que entrega la herramienta: el panel encuentra el ID. Si el ID no es válido, avisa antes de guardar.
+Un interruptor «Seguimiento activo» apaga todo en el sitio sin borrar los IDs.
+Eventos que el sitio envía: clic en WhatsApp, ver una raza, inicio y resultado del quiz, verificar asesor, reproducir un video y cada cambio de vista.
+Con Google Tag Manager llegan a dataLayer con su nombre (whatsapp_click, view_breed, quiz_start, quiz_result, adviser_check, video_play).
+IMPORTANTE: si se usa Tag Manager, GA4/Ads/Meta se configuran DENTRO de Tag Manager; no repetir aquí los mismos IDs o se cuenta doble (el panel avisa).
+Para comprobarlo: Meta Pixel Helper (Meta), Tag Assistant o «Tiempo real» de Analytics (Google).
+Seguridad: el «Código personalizado» se ejecuta dentro del sitio; pega solo código de herramientas de confianza y guarda bien la clave del panel.
+Si el panel no responde, el sitio simplemente no carga el seguimiento (no se rompe nada). El script se pide después de que la página termina de cargar.
 
 USO DIARIO DEL PANEL (para el cliente)
 --------------------------------------
